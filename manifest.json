@@ -1,0 +1,45 @@
+{
+  "name": "Quick-Drag: Drag, Save Images Links and Text",
+  "version": "0.11",
+  "description": "Drag and save images links and text to Google Drive, Dropbox, Amazon S3, your own hard drive, or whatever server you want really.",
+  "permissions":["http://*/*", "https://*/*", "storage", "identity", "downloads", "downloads.shelf", "tabs", "contentSettings"],
+  "background": {
+    "scripts": ["accounts/aws-sdk-2.1.13.min.js","background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "exclude_matches": ["https://dl.dropboxusercontent.com/emptypage*"],
+      "run_at": "document_start",
+      "css": ["dts_min.css"],
+      "js": ["dts_min.js"]
+    },
+    {
+      "matches": ["https://dl.dropboxusercontent.com/emptypage*"],
+      "js": ["accounts/dropbox_cs.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "manifest_version": 2,
+  "options_ui": {
+    "page": "options.html",
+    "chrome_style": true
+  },
+  "oauth2": {
+    "client_id": "1074395501887-7nevp38em4rclgv4sto88tr528r0ohil.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive"
+    ]
+  },
+  "icons": {
+    "48": "img/48.png",
+    "128": "img/128.png"
+  },
+  "web_accessible_resources": ["accounts/*"],
+  "externally_connectable": {
+    "matches": ["https://dl.dropboxusercontent.com/emptypage*"]
+  },
+  "content_security_policy": "script-src 'self' https://api.tumblr.com/v2/; object-src 'self';",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgj3M71vKbs8JD/KL6JnSYaJ2lhEzcPxErrGYz4yUvmuTxjgINIKsdMa+gEL/5rYhmci/+AdcpOimKOID8yVuWCLUfKD4Wdk7tbbnUG5YemDWqKeiO0cBXmnTHFZCZtpgVWXFWzwNuDeqQoRvqjMescEgrbKp7AQelT8RiXlbmX85Lg+mV/Vlppjxic4MyBYOj3v+GXovVNimwdPjioXGVh8cfFSjQp60aJ86wC8D3Evgh8QZz20wV7XR82ZRVckqXgzVRwhKzBkdDtj0RrA2t+rW+MmEEqcgDQ5h6jQcvkJauDZqCM2Fmg6Mq99IOf4jl+n+uDZKz5AHcIAzQkB3ZwIDAQAB"
+}

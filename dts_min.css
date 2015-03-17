@@ -1,0 +1,45 @@
+﻿.qd_droppable {
+	position:fixed!important;
+	top:20px;
+	right:10px!important;
+	width:80px!important;
+	height:60px!important;
+	padding:10px!important;
+	transform-origin: -50px -200px;
+	-webkit-transform: rotate(-45deg);
+	z-index:2147483647!important;
+
+	background:#f39c12!important;
+	box-shadow:2px 2px 8px rgba(0,0,0,0.2)!important;
+	border-radius:2px!important;
+	border:none!important;
+	text-align:center!important;
+	color:#FFF!important;
+	font-weight:bold!important;
+	font-family:Calibri, Helvetica, Arial, sans-serif!important;
+}
+.qd_droppable.over {
+	background:#d35400!important;
+}
+.qd_droppable.success {
+	background:#27ae60!important;
+}
+.qd_droppable.failure {
+	background:#c0392b!important;
+}
+.qd_in {
+	 -webkit-animation: qd_ease_in 150ms cubic-bezier(0.5, 0.2, 0.5, 1.2) normal 1 forwards;
+}
+.qd_out {
+	transform-origin: 150px 170px;
+	-webkit-animation: qd_ease_out 500ms cubic-bezier(0,.25,.75,1) normal 1 forwards;
+}
+
+@-webkit-keyframes qd_ease_in {
+	0% {-webkit-transform: rotate(-45deg);}
+	100% {-webkit-transform: rotate(0deg);}
+}
+@-webkit-keyframes qd_ease_out {
+	0% {-webkit-transform: rotate(0deg);}
+	100% {-webkit-transform: rotate(45deg);}
+}
