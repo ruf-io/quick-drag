@@ -1,3 +1,5 @@
+//DROPOX INCJECTION SCRIPT - RUNS ON THE BROWSER DOM AS OPPOSED TO THE EXTENSION DOM,
+//ALLOWING COMMUNICATION BETWEEN SAVER WINDOW AND BROWSER
 var options = {
     files: [{ url:'', filename:'' }],
     success: function () {

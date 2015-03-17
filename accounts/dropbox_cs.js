@@ -1,4 +1,4 @@
-
+//DROPBOX CONTENT SCRIPT - RUNS IN THE DROPOX IFRAME (https://dl.dropboxusercontent.com/emptypage...)
 var s = document.createElement('script');
 s.src = 'https://www.dropbox.com/static/api/2/dropins.js';
 s.onload = function() {
