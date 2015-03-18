@@ -138,6 +138,8 @@ var QD_EXT = (function () {
 						//ADD DROP LISTENER
 						el.ondrop = function(e) {
 							sendMessage(dragging, this);
+							e.preventDefault();
+							e.stopPropagation();
 						};
 						el.ondragenter = function(e) {
 							this.classList.add('over');

@@ -1,6 +1,6 @@
 {
   "name": "Quick-Drag: Drag, Save Images Links and Text",
-  "version": "0.11",
+  "version": "0.12",
   "description": "Drag and save images links and text to Google Drive, Dropbox, Amazon S3, your own hard drive, or whatever server you want really.",
   "permissions":["http://*/*", "https://*/*", "storage", "identity", "downloads", "downloads.shelf", "tabs", "contentSettings"],
   "background": {
