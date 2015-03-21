@@ -113,6 +113,9 @@
 		},
 		twitter: function(data, callback) {
 			//if(data.)
+		},
+		pocket: function(data, callback) {
+			QD_pocket.add({url:data.page_url, title:data.description});
 		}
 	};
 
@@ -122,20 +125,18 @@
 			chrome.tabs.create({url:"chrome://extensions/?options=" + chrome.runtime.id});	//TODO - LOOK TO SEE IF EXTENSIONS TAB IS ALREADY OPEN
 		} else {
 			qd_settings = qd_settings || {'accounts':{}};
-			for(var section_name of data.sections) {
-				if(section_name in data.content && 'options' in data.content[section_name] && data.content[section_name].options instanceof Array) {
-					var ptr = ('class' in data.content[section_name] && data.content[section_name].class === "account" ? qd_settings['accounts'] : qd_settings);
-					ptr[section_name] = {'title':data.content[section_name].title || ""};
-					for(var option of data.content[section_name].options) {
-						if('name' in option) {
-							if('id' in option && option.value) ptr[section_name][option.name] = option.id;
-						} else if('id' in option) ptr[section_name][option.id] = option.value;
+			if(data.sections) {
+				for(var section_name of data.sections) {
+					if(section_name in data.content && 'options' in data.content[section_name] && data.content[section_name].options instanceof Array) {
+						var ptr = ('class' in data.content[section_name] && data.content[section_name].class === "account" ? qd_settings['accounts'] : qd_settings);
+						ptr[section_name] = {'title':data.content[section_name].title || ""};
+						for(var option of data.content[section_name].options) {
+							if('name' in option) {
+								if('id' in option && option.value) ptr[section_name][option.name] = option.id;
+							} else if('id' in option) ptr[section_name][option.id] = option.value;
+						}
 					}
 				}
-			}
-			//LOOK FOR OAUTH REQUIREMENTS
-			if(qd_settings.accounts.tumblr.active) {
-
 			}
 		}
 	};

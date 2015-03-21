@@ -1,10 +1,10 @@
 {
   "name": "Quick-Drag: Drag, Save Images Links and Text",
-  "version": "0.12",
+  "version": "0.13",
   "description": "Drag and save images links and text to Google Drive, Dropbox, Amazon S3, your own hard drive, or whatever server you want really.",
   "permissions":["http://*/*", "https://*/*", "storage", "identity", "downloads", "downloads.shelf", "tabs", "contentSettings"],
   "background": {
-    "scripts": ["accounts/aws-sdk-2.1.13.min.js","background.js"]
+    "scripts": ["accounts/aws-sdk-2.1.13.min.js","accounts/pocket.js", "background.js"]
   },
   "content_scripts": [
     {

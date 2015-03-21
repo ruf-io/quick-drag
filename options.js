@@ -6,7 +6,7 @@ var QD_options = (function () {
 	//DEFAULT OPTIONS (SET IF NO PREVIOUS STORAGE IS FOUND)
 	settings_defaults = {
 		version:0.1,
-		sections:['draggable_elements', 'gestures', 'local', 's3', 'dropbox', 'google_drive', 'tumblr'],
+		sections:['draggable_elements', 'gestures', 'local', 's3', 'dropbox', 'google_drive', 'tumblr', 'pocket'],
 		content:{
 			draggable_elements:{
 				title:"Draggable Elements",
@@ -72,6 +72,17 @@ var QD_options = (function () {
 					{id:'valid_for', title:'Valid For:', value:[0,1,2,3,4], description:"Select content types where this account will appear as an option."}
 				]
 			},
+			pocket:{
+				class:'account',
+				title:'Pocket',
+				options:[
+					{id:'active', value:false, class:'top-right'},
+					{id:'code', value:'', class:'hidden'},
+					{id:'username', value:'', class:'hidden'},
+					{id:'access_token', value:'', class:'hidden'},
+					{id:'valid_for', title:'Valid For:', value:[0,1,2,3,4], description:"Select content types where this account will appear as an option."}
+				]
+			}
 		}
 	};
 
