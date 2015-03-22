@@ -152,7 +152,7 @@
 			if('target' in message && message.target in _account_actions) { _account_actions[message.target](message, sendResponse); }
 			
 			//BROWSER SCRIPT CAN REQUEST CURRENT CONFIGURATION
-			else if ('accountrequest' in message) { sendResponse(qd_settings); }
+			else if ('accountRequest' in message) { sendResponse(qd_settings); }
 			
 			//DROPBOX FOLLOW-UP MESSAGE FROM IFRAME DOM 
 			else if('dropbox' in message) {

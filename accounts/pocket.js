@@ -1,5 +1,6 @@
 var QD_pocket = (function () {
-	var CONSUMER_KEY = "39245-88f828ff30ea1ed92696bd7c",		//REGISTER APP TO GET CONSUMER KEY http://getpocket.com/developer/apps/new
+	//PRIVATE VARS
+	var CONSUMER_KEY = "39245-88f828ff30ea1ed92696bd7c",		//REGISTER YOUR APP TO GET CONSUMER KEY http://getpocket.com/developer/apps/new
 	REDIRECT_URI = "chrome-extension://dkilhaadjikcodnfcgjlakmapnjnijlb/accounts/pocket_auth.html?step2",	//PAGE MOVES PROCESS TO STEP TWO
 	POCKET_URL = {
 		REQUEST:'https://getpocket.com/v3/oauth/request',
@@ -11,8 +12,9 @@ var QD_pocket = (function () {
 		"Content-type": "application/json; charset=UTF-8",
 		"X-Accept": "application/json"
 	},
-	_oAuthPost, _getAuthCode, _getRequestToken;
+	_getAuthCode, _oAuthPost, _getRequestToken;
 
+	//PRIVATE FUNCTIONS
 	_getAuthCode = function(callback) {
 		chrome.storage.sync.get(null, function(data) {
 			for(var opt of data.content.pocket.options) {
@@ -81,5 +83,6 @@ var QD_pocket = (function () {
 })();
 
 //step2 IN URL INDICATES RESPONSE FROM MANUAL AUTHORIZE
-if(document.location.search === "?step2")
+if(document.location.search === "?step2") {
 	QD_pocket.authorize();
+}

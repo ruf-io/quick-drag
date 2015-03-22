@@ -18,61 +18,91 @@ var QD_EXT = (function () {
 	//button_cache = null,	TODO - SEE IF JUST ADDING ONE PARENT ELEMENT THAT ENCAPSULATES ALL BUTTONS IS ANY FASTER
 
 	//INIT PRIVATE FUNCTIONS
-	dragMonitor, removeHTML, initialize, animate, showSidebar, hideSidebar, gestures, sendMessage, makeNotifier;
+	_dragMonitor, _removeHTML, _animate, _showSidebar, _hideSidebar, _gestures, _sendMessage, _makeNotifier;
 	
 	//PRIVATE FUNCTIONS
-	dragMonitor = function(e, gesture) {
-		removeHTML("cancel");
-		buttons.map(function(button, i) {button.className = "qd_droppable"; document.body.appendChild(button); });
+	_dragMonitor = function(e, gesture) {
+		_removeHTML("cancel");
+		buttons.map( function (button, i) {
+			button.className = "qd_droppable";
+			document.body.appendChild(button);
+		});
 		sc = [e.screenX, e.screenY];
 		dragging = e.target;
-		if (gesture === "override") showSidebar();
-		else window.ondrag = gestures[gesture];
+		if (gesture === "override") {
+			_showSidebar();
+		}
+		else {
+			window.ondrag = _gestures[gesture];
+		}
 	};
+
 	//REMOVE (OR CANCEL THE REMOVAL) OF BUTTONS
-	removeHTML = function(type) {
-		if(type === "cancel") window.setTimeout(function() {window.clearTimeout(buttonRemoveTimeout);}, 50);
-		else buttonRemoveTimeout = window.setTimeout(function() {buttons.map(function(button, i) { document.body.removeChild(button); });}, 1000);
+	_removeHTML = function(type) {
+		if(type === "cancel") {
+			window.setTimeout(function() {
+				window.clearTimeout(buttonRemoveTimeout);
+			}, 50);
+		else {
+			buttonRemoveTimeout = window.setTimeout(function() {
+				buttons.map(function(button, i) {
+					document.body.removeChild(button);
+				});
+			}, 1000);
+		}
 	};
-	animate = function(el, direction, delay, callback){
+
+	//ANIMATE THE BUTTONS
+	_animate = function(el, direction, delay, callback){
 		window.setTimeout(function(){
 			el.className = 'qd_droppable';
 			el.classList.add(direction);
-			if(callback) window.setTimeout(function() {callback();}, 500);
+			if(callback) {
+				window.setTimeout(function() {
+					callback();
+				}, 500);
+			}
 		}, delay);
 	};
-	showSidebar = function() {
-		console.log('sidebar');
+
+	//SLIDE IN THE SIDEBAR BUTTONS
+	_showSidebar = function() {
 		if(!sidebar_visible) {
 			sidebar_visible = true;
 			buttons.map(function(button, i) {
-				animate(button, "qd_in", i*STAGGER);
+				_animate(button, "qd_in", i*STAGGER);
 			});
 		}
 	};
-	hideSidebar = function() {
+
+	//SLIDE OUT THE SIDEBAR AND REMOVE
+	_hideSidebar = function() {
 		if(sidebar_visible) {
 			sidebar_visible = false;
 			buttons.map(function(button, i) {
-				if(!button.classList.contains('over')) animate(button, "qd_out", i*STAGGER);
+				if(!button.classList.contains('over')) {
+					_animate(button, "qd_out", i*STAGGER);
+				}
 			});
 		}
 	};
-	gestures = {
+
+	//USER SELECTS FROM MULTIPLE GESTURE OPTIONS
+	_gestures = {
 		'up-right': function(e) {
 				if (gesture_stage === 0 && sc[1] - e.screenY > DRAG_THRESHOLD && Math.abs((e.screenY - sc[1])/(e.screenX - sc[0])) > 2) {
 					gesture_stage = 1;
 					sc = [e.screenX, e.screenY];
 				}
 				else if (gesture_stage === 1 && e.screenX - sc[0] > DRAG_THRESHOLD && Math.abs((e.screenY - sc[1]+50)/(e.screenX - sc[0])) < 0.5) {
-					showSidebar();
+					_showSidebar();
 					window.ondrag = null;
 				}
 				return true;
 		},
 		'right':  function(e) {
 				if ( e.screenX - sc[0] > DRAG_THRESHOLD && Math.abs((e.screenY - sc[1]+50)/(e.screenX - sc[0])) < 0.5) {
-					showSidebar();
+					_showSidebar();
 					window.ondrag = null;
 				}
 				return true;
@@ -83,15 +113,17 @@ var QD_EXT = (function () {
 					sc = [e.screenX, e.screenY];
 				}
 				else if (gesture_stage === 1 && e.screenX - sc[0] > DRAG_THRESHOLD && Math.abs((e.screenY - sc[1]+50)/(e.screenX - sc[0])) < 0.5) {
-					showSidebar();
+					_showSidebar();
 					window.ondrag = null;
 				}
 				return true;
 		}
 	};
-	sendMessage = function(dragged, dropped) {
+
+	_sendMessage = function(dragged, dropped) {
 		if (dragged.tagName in qd_settings.draggable_elements && qd_settings.draggable_elements[dragged.tagName]) {
-			removeHTML("cancel");
+			_removeHTML("cancel");
+			//BUILD DATA OBJECT TO SEND
 			chrome.runtime.sendMessage({
 				target:dropped.id,
 				type:dragged.tagName.toLowerCase(),
@@ -100,33 +132,40 @@ var QD_EXT = (function () {
 				page_domain:window.location.host,
 				page_protocol:window.location.protocol,
 				page_url:window.location.href
-			}, makeNotifier(dropped));
+			}, _makeNotifier(dropped));
 			dropped.innerText = "Sending...";
 			//FLOAT BOX TO TOP
 			var float_top = parseInt(dropped.style['margin-top'].replace('px'), 10),
 				position = float_top;
 			window.setTimeout( function() {
-				var animateToTop = window.setInterval(function(){
+				var _animateToTop = window.setInterval(function(){
 					position = position/1.5;
 					dropped.style.top = "-" + Math.round(float_top-position, 0) + "px";
-					if(position < 1) window.clearInterval(animateToTop);
+					if(position < 1) window.clearInterval(_animateToTop);
 				}, 35);
 			}, 300);
 		}
 	};
-	makeNotifier = function(dropped) {
+
+	_makeNotifier = function(dropped) {
 		return function(response) {
 			dropped.innerText = response.alert || "Complete";
 			dropped.classList.add(response.success ? 'success' : 'failure');
-			animate(dropped, "qd_out", 600, function() { dropped.style.top = null; dropped.innerText = dropped.getAttribute('data-default-name'); removeHTML();});
+			_animate(dropped, "qd_out", 600, function() {
+				dropped.style.top = null;
+				dropped.innerText = dropped.getAttribute('data-default-name');
+				_removeHTML();
+			});
 		};
 	}
 
 	return {
 		initialize:function() {
-			chrome.runtime.sendMessage({accountrequest:1}, function(settings_in) {
+			chrome.runtime.sendMessage({accountRequest:1}, function(settings_in) {
 				qd_settings = settings_in;
 				var i = 0;
+
+				//SETUP BUTTONS
 				Object.keys(qd_settings.accounts).forEach( function(key) {
 					if( qd_settings.accounts[key].active ) {
 						var el = document.createElement('button');
@@ -137,7 +176,7 @@ var QD_EXT = (function () {
 						el.style['margin-top'] = (i * BUTTON_HEIGHT) + "px";
 						//ADD DROP LISTENER
 						el.ondrop = function(e) {
-							sendMessage(dragging, this);
+							_sendMessage(dragging, this);
 							e.preventDefault();
 							e.stopPropagation();
 						};
@@ -158,32 +197,37 @@ var QD_EXT = (function () {
 						buttons[i++] = el;
 					}
 				});
+
 				//ADD GENERAL DRAG EVENTS
 				window.ondragstart = function(e) {
 					internal_drag = true;
 					if(e.target.nodeName in qd_settings.draggable_elements) {
-						dragMonitor(e, qd_settings.gestures.active_gesture);
+						_dragMonitor(e, qd_settings._gestures.active_gesture);
 					}
 				};
+
 				//ONLY EXISTS TO CATCH EXTERNAL DROPS (EG FROM OMNIBAR)
 				window.ondragover = function(e) {
 					if(!internal_drag && !external_dragging) {
 						external_dragging = true;
-						dragMonitor(e, 'override');
+						_dragMonitor(e, 'override');
 					}
 					return true;
 				};
+
+				//GET RID OF EVERYTHING ON DRAG END
 				window.ondragend = function(e) {
 					internal_drag = false;
 					external_dragging = false;
-					hideSidebar();
+					_hideSidebar();
 					gesture_stage = 0;
 					window.ondrag = null;
-					removeHTML();
+					_removeHTML();
 					e.stopPropagation();
     			e.preventDefault();
 					return true;
 				};
+				
 				//SET VIDEO AND AUDIO TO DRAGGABLE
 				window.onload = function() {
 					var draggables = document.querySelectorAll('video, audio'), d_len = draggables.length, i;
