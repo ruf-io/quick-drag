@@ -130,10 +130,17 @@
 					if(section_name in data.content && 'options' in data.content[section_name] && data.content[section_name].options instanceof Array) {
 						var ptr = ('class' in data.content[section_name] && data.content[section_name].class === "account" ? qd_settings['accounts'] : qd_settings);
 						ptr[section_name] = {'title':data.content[section_name].title || ""};
+						if('create_index' in data.content[section_name]) { ptr[section_name].index = []; }
 						for(var option of data.content[section_name].options) {
 							if('name' in option) {
 								if('id' in option && option.value) ptr[section_name][option.name] = option.id;
-							} else if('id' in option) ptr[section_name][option.id] = option.value;
+							} else if('id' in option) {
+								ptr[section_name][option.id] = option.value;
+								if( 'index' in ptr[section_name]) { ptr[section_name].index.push(option.id); }
+								if('required' in option && option.required === true && option.value === '') {
+									ptr[section_name]['active'] = false;
+								}
+							}
 						}
 					}
 				}
@@ -177,7 +184,8 @@
 				//RE-ENABLE THE DOWNLOAD SHELF FOR REGULAR BROWSING
 				chrome.downloads.setShelfEnabled(true);
 			}
-		}
+		},
+		get_settings: function() { return qd_settings; }
 	}
 })();
 

@@ -6,16 +6,17 @@ var QD_options = (function () {
 	//DEFAULT OPTIONS (SET IF NO PREVIOUS STORAGE IS FOUND)
 	settings_defaults = {
 		version:0.1,
-		sections:['draggable_elements', 'gestures', 'local', 's3', 'dropbox', 'google_drive', 'tumblr', 'pocket'],
+		sections:['draggable_elements', 'gestures', 'local', 'google_drive', 'dropbox', 's3',  'tumblr', 'pocket'],
 		content:{
 			draggable_elements:{
 				title:"Draggable Elements",
+				create_index: true,
 				options:[
-					{id:'A', title:"Links", save:'href', value:true },
-					{id:'IMG', title:"Images", save:'src', value:true },
-					{id:'#text', title:"Selected Text", save:'text', value:true },
-					{id:'VIDEO', title:"Video", save:'src', value:true },
-					{id:'AUDIO', title:"Audio", save:'src', value:true }
+					{id:'a', title:"Links", save:'href', value:true },
+					{id:'img', title:"Images", save:'src', value:true },
+					{id:'text', title:"Selected Text", save:'text', value:true },
+					{id:'video', title:"Video", save:'src', value:true },
+					{id:'audio', title:"Audio", save:'src', value:true }
 				]
 			},
 			gestures:{
@@ -39,7 +40,7 @@ var QD_options = (function () {
 				class:'account',
 				title:'Amazon S3',
 				options:[
-					{id:'active', value:true, class:'top-right'},
+					{id:'active', value:false, class:'top-right'},
 					{id:'access_key', title:"S3 Access Key", value:'', description:'Your Amazon S3 Key.', required:true},
 					{id:'secret_key', title:"S3 Secret Key", value:'', description:'Your Amazon S3 SECRET Key (will not exist outside this Chrome Extension.)', required:true},
 					{id:'bucket', title:"Bucket Name", value:'', description:'The name of a pre-existing Amazon S3 bucket where your files will be saved.', required:false},
@@ -193,7 +194,6 @@ var QD_options = (function () {
 	};
  
 	return {
-		// A public function utilizing privates
 		init: function() {
 			chrome.storage.sync.get(settings_defaults, function(stored_settings) {
 				settings = stored_settings;
