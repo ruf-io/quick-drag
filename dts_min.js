@@ -23,7 +23,7 @@ var QD_ext = (function () {
 	//button_cache = null,	TODO - SEE IF JUST ADDING ONE PARENT ELEMENT THAT ENCAPSULATES ALL BUTTONS IS ANY FASTER
 
 	//INIT PRIVATE FUNCTIONS
-	_dragStart, _removeHTML, _cancelRemoveHTML, _animate, _showSidebar, _hideSidebar, _gestures, _sendMessage, _makeNotifier;
+	_dragStart, _removeHTML, _cancelRemoveHTML, _animate, _showSidebar, _hideSidebar, _gestures, _sendMessage, _makeNotifier, _dbg;
 
 
 	//1. A DRAGSTART LISTENER IS POSTED TO THE WINDOW - IT TRIGGERS _dragStart
@@ -33,11 +33,13 @@ var QD_ext = (function () {
 	//3b. continued... EVENT IS SETUP TO LISTEN FOR RESPONSE FROM BACKGROUND PROCESS WITH STATUS
 	//TODO - NEED TO ACCOUNT FOR MULTIPLE PARALLEL DROPS
 
+	_dbg = function(t) {console.log(t);}
 
 	//PRIVATE FUNCTIONS
 	//ENTIRE PROCESS MUST START WITH THIS
 	_dragStart = function(drag_event_in, drag_type_in) {
 		_dbg('_dragStart');
+		_dbg(drag_event_in);
 		_cancelRemoveHTML();
 		drag_type = drag_type_in || 1;
 		drag_event = drag_event_in;
