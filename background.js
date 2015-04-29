@@ -19,7 +19,7 @@
   //SAVE URL TO MEMORY AND CALLBACK
   _download_url = function(data, error_callback, callback) {
   	var reader, xhr = new XMLHttpRequest();
-		xhr.open('GET', data.url, true);
+		xhr.open('GET', data.object_url, true);
 		xhr.responseType = 'arraybuffer';
 		xhr.onload = function(e){
 			if (this.status == 200) {
@@ -29,7 +29,7 @@
 				reader.readAsDataURL(data.blob);
 				reader.onloadend = function(e){
 					data.raw_data = reader.result;
-					data.file_name = _build_filename(data.page_domain, data.content_type);
+					data.file_name = _build_filename(data.citation_domain, data.content_type);
 					callback(data);
 				}
 			} else { error_callback({success:false, alert:"Error Downloading File"}); }
@@ -59,10 +59,17 @@
 			//STEP 2: MANIFEST.JSON SPECIFIES A CONTENT SCRIPT TO RUN IN THAT PAGE, INJECTING THE SAVER SCRIPTS
 			//STEP 3: AT THAT POINT THE CALLBACK CHAIN IS BROKEN, QUEUE CALLBACK IN BACKGROUND AND WAIT FOR A MESSAGE FROM DOM
 			_download_url(data, callback, function(data) {
-				chrome.contentSettings.popups.set({primaryPattern:data.page_protocol + "//" + data.page_domain + "/*", setting:"allow" });
+				chrome.contentSettings.popups.set({primaryPattern:data.citation_protocol + "//" + data.citation_domain + "/*", setting:"allow" });
 				var uid = +new Date();
 				chrome.tabs.executeScript(data.sender.tab.id, {
-					code: 'var qd_iframe = document.createElement("iframe"); qd_iframe.setAttribute("style", "position:fixed; top:-4000px; left:-4000px;"); qd_iframe.src = "https://dl.dropboxusercontent.com/emptypage?url=' + encodeURIComponent(data.url) + '&filename=' + data.file_name + '&uid=' + uid + '&extension_id=' + chrome.runtime.id +'"; document.body.appendChild(qd_iframe); function removeQDIframe(event){ if (event.data=="removeQDIframe") document.body.removeChild(qd_iframe); } window.addEventListener("message", removeQDIframe, false);'
+					code: `var qd_iframe = document.createElement("iframe");
+								 qd_iframe.setAttribute("style", "position:fixed; top:-4000px; left:-4000px;");
+								 qd_iframe.src = "https://dl.dropboxusercontent.com/emptypage?url=` + encodeURIComponent(data.object_url) + `&filename=` + data.file_name + `&uid=` + uid + `&extension_id=` + chrome.runtime.id + `";
+								 document.body.appendChild(qd_iframe);
+								 function removeQDIframe(event){
+								 	if (event.data=="removeQDIframe") document.body.removeChild(qd_iframe);
+								 }
+								 window.addEventListener("message", removeQDIframe, false);`
 				});
 				queued_callbacks[uid] = callback;
 			});
@@ -76,7 +83,7 @@
 		    parts.push('--' + bound);
 		    parts.push('Content-Type: application/json');
 		    parts.push('');
-		    parts.push(JSON.stringify({title: data.file_name, mimeType:data.content_type, description:data.description + " - Found on " + data.page_url, indexableText:{text:data.description}}));
+		    parts.push(JSON.stringify({title: data.file_name, mimeType:data.content_type, description:data.description + " - Found on " + data.citation_url, indexableText:{text:data.description}}));
 		    parts.push('--' + bound);
 		    //PART 2 IS IMAGE
 		    parts.push('Content-Type: ' + data.content_type);
@@ -100,22 +107,23 @@
 			});
 		},
 		local: function(data, callback) {
-			chrome.storage.sync.get({download_incrementer:1}, function(stored_settings) {
+			_download_url(data, callback, function(data) {
 				chrome.downloads.setShelfEnabled(false);
 				chrome.downloads.download({
-					url: data.url,
-					filename: (qd_settings.accounts.local.directory) + stored_settings.download_incrementer
+					url: data.object_url,
+					filename: (qd_settings.accounts.local.directory) +  data.file_name
 				}, function(download_id) {
-					active_downloads[download_id] = data;
-					chrome.storage.sync.set({download_incrementer:stored_settings.download_incrementer+1});
+					active_downloads[download_id] = callback;
 				});
 			});
 		},
 		twitter: function(data, callback) {
-			//if(data.)
+		//	if(data.)
 		},
 		pocket: function(data, callback) {
-			QD_pocket.add({url:data.page_url, title:data.description});
+			QD_pocket.add({url:data.citation_url, title:data.description}, function(status) {
+				if(status === 1) { callback({success:true, alert:'Added to Pocket'}); }
+			});
 		}
 	};
 
@@ -156,7 +164,7 @@
 			console.log(message);
 			//ROUTE TO ACCOUNT-SPECIFIC FUNCTION IF APPLICABLE
 			message.sender = sender;
-			if('target' in message && message.target in _account_actions) { _account_actions[message.target](message, sendResponse); }
+			if('action' in message && message.action in _account_actions) { _account_actions[message.action](message, sendResponse); }
 			
 			//BROWSER SCRIPT CAN REQUEST CURRENT CONFIGURATION
 			else if ('accountRequest' in message) { sendResponse(qd_settings); }
@@ -179,6 +187,8 @@
 		},
 		download_watcher: function(download_item) {
 			if(download_item.id in active_downloads && ('state' in download_item && download_item.state.current === "complete")) {
+				//CALLBACK
+				active_downloads[download_item.id]({success:true, alert:"Saved"});
 				//REMOVE FROM ACTIVE DOWNLOADS
 				delete active_downloads[download_item.id];
 				//RE-ENABLE THE DOWNLOAD SHELF FOR REGULAR BROWSING

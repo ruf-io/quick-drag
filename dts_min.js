@@ -15,15 +15,20 @@ var QD_ext = (function () {
 	buttons = [],
 	buttonRemoveTimeout = null,
 	message = {
-		page_domain:window.location.host,
-		page_protocol:window.location.protocol,
-		page_url:window.location.href
+		citation_domain:window.location.host,
+		citation_protocol:window.location.protocol,
+		citation_url:window.location.href,
+		object_url:'',
+		object_title:'',
+		object_description:'', 
+		object_type:'',
+		object_tags:[]
 	},
 	gestureMonitor = null,
 	//button_cache = null,	TODO - SEE IF JUST ADDING ONE PARENT ELEMENT THAT ENCAPSULATES ALL BUTTONS IS ANY FASTER
 
 	//INIT PRIVATE FUNCTIONS
-	_dragStart, _removeHTML, _cancelRemoveHTML, _animate, _showSidebar, _hideSidebar, _gestures, _sendMessage, _makeNotifier, _dbg;
+	_dragStart, _removeHTML, _cancelRemoveHTML, _animate, _showSidebar, _hideSidebar, _gestures, _sendMessage, _makeNotifier, _dbg, _buildMessage;
 
 
 	//1. A DRAGSTART LISTENER IS POSTED TO THE WINDOW - IT TRIGGERS _dragStart
@@ -33,7 +38,9 @@ var QD_ext = (function () {
 	//3b. continued... EVENT IS SETUP TO LISTEN FOR RESPONSE FROM BACKGROUND PROCESS WITH STATUS
 	//TODO - NEED TO ACCOUNT FOR MULTIPLE PARALLEL DROPS
 
-	_dbg = function(t) {console.log(t);}
+	_dbg = function(t) {
+		//console.log(t);
+	}
 
 	//PRIVATE FUNCTIONS
 	//ENTIRE PROCESS MUST START WITH THIS
@@ -46,15 +53,18 @@ var QD_ext = (function () {
 		if (drag_type === 2) {
 			_dbg('DRAGGED FROM EXTERNAL WINDOW');
 			_showSidebar();
-			message.type = "";
+			message.object_type = "external";
 		} else {
 			_dbg('DRAGGED FROM WITHIN THIS WINDOW');
-			message.type = drag_event.target.tagName.toLowerCase().replace('#', '');
+			message.citation_title = document.title;
+			message.object_type = drag_event.target.tagName.toLowerCase().replace('#', '');
+			message.object_url = drag_event.target.src || drag_event.target.href || '';
+			message.object_title = drag_event.target.getAttribute('alt') || drag_event.target.getAttribute('title') || message.object_type + " from " + message.citation_domain;
 			sc = [drag_event.screenX, drag_event.screenY];
 			window.addEventListener('drag', gestureMonitor, false);
 		}
 		buttons.map( function (button, i) {
-			if(drag_type === 2 || button.getAttribute('data-' + message.type)) {
+			if(drag_type === 2 || button.getAttribute('data-' + message.object_type)) {
 				button.className = "qd_droppable";
 				document.body.appendChild(button);
 			}
@@ -125,7 +135,7 @@ var QD_ext = (function () {
 					gesture_stage = 1;
 					sc = [e.screenX, e.screenY];
 				}
-				else if (gesture_stage === 1 && e.screenX - sc[0] > DRAG_THRESHOLD && Math.abs((e.screenY - sc[1]+50)/(e.screenX - sc[0])) < 0.5) {
+				else if (gesture_stage === 1 && e.screenX - sc[0] > DRAG_THRESHOLD) {
 					_showSidebar();
 				}
 				return true;
@@ -141,7 +151,7 @@ var QD_ext = (function () {
 					gesture_stage = 1;
 					sc = [e.screenX, e.screenY];
 				}
-				else if (gesture_stage === 1 && e.screenX - sc[0] > DRAG_THRESHOLD && Math.abs((e.screenY - sc[1]+50)/(e.screenX - sc[0])) < 0.5) {
+				else if (gesture_stage === 1 && e.screenX - sc[0] > DRAG_THRESHOLD) {
 					_showSidebar();
 				}
 				return true;
@@ -149,37 +159,37 @@ var QD_ext = (function () {
 	};
 
 	_sendMessage = function(e, dropped) {
-		console.log("_sendMessage");
-		//PARSE DRAGGED EVENT
-		console.table(e.dataTransfer.files);
-		console.table(e.dataTransfer.items);
-		for(var i=0; i<e.dataTransfer.items.length; i++) {
-			e.dataTransfer.items[i].getAsString(function(){ console.log(arguments); });
+		_dbg("_sendMessage");
+		//BUILD MESSAGE
+		if(message.object_type === "") {
+			_dbg('EXTERNAL DRAG');
+			//EXTERNAL MEANS LOCATION.HREF IS NO LONGER APPLICABLE, OVERWRITE CITATION, SRC, 
+			for(var i=0; i<e.dataTransfer.items.length; i++) {
+				e.dataTransfer.items[i].getAsString(function(){ console.log(arguments); });
+			}
+			for(var i=0; i<e.dataTransfer.files.length; i++) {
+				e.dataTransfer.files[i].getAsString(function(){ console.log(arguments); });
+			}
+		} else {
+			_dbg('Internal Drag');
 		}
-		for(var i=0; i<e.dataTransfer.files.length; i++) {
-			e.dataTransfer.files[i].getAsString(function(){ console.log(arguments); });
-		}
-		/**
-		if (dragged.target.tagName in qd_settings.draggable_elements && qd_settings.draggable_elements[dragged.target.tagName]) {
-			_hideSidebar(dropped);
-			//BUILD MESSAGE
-			message.target = dropped.id;
-			message.url = (dragged.target.src || dragged.target.href || "");
-			message.description = (dragged.target.getAttribute('alt') || dragged.target.getAttribute('title') || dragged.target.tagName + " from " + window.location.host);
-			//SEND MESSAGE
-			chrome.runtime.sendMessage(message, _makeNotifier(dropped));
-			dropped.innerText = "Sending...";
-			//FLOAT BOX TO TOP
-			var float_top = parseInt(dropped.style['margin-top'].replace('px'), 10),
-				position = float_top;
-			window.setTimeout( function() {
-				var _animateToTop = window.setInterval(function(){
-					position = position/1.5;
-					dropped.style.top = "-" + Math.round(float_top-position, 0) + "px";
-					if(position < 10) window.clearInterval(_animateToTop);
-				}, 35);
-			}, 300);
-		} else {_hideSidebar();}**/
+		_hideSidebar(dropped);
+		message.action = dropped.id;
+
+		//SEND MESSAGE
+		chrome.runtime.sendMessage(message, _makeNotifier(dropped));
+		dropped.innerText = "Sending...";
+
+		//FLOAT BOX TO TOP
+		var float_top = parseInt(dropped.style['margin-top'].replace('px'), 10),
+			position = float_top;
+		window.setTimeout( function() {
+			var _animateToTop = window.setInterval(function(){
+				position = position/1.5;
+				dropped.style.top = "-" + Math.round(float_top-position, 0) + "px";
+				if(position < 10) window.clearInterval(_animateToTop);
+			}, 35);
+		}, 300);
 	};
 
 	_makeNotifier = function(dropped) {
@@ -199,7 +209,7 @@ var QD_ext = (function () {
 		initialize:function() {
 			chrome.runtime.sendMessage({accountRequest:1}, function(settings_in) {
 				qd_settings = settings_in;
-				console.log(qd_settings);
+				_dbg(qd_settings);
 				gestureMonitor = _gestures[qd_settings.gestures.active_gesture];
 				var i = 0;
 				//SETUP BUTTONS
@@ -213,9 +223,9 @@ var QD_ext = (function () {
 						el.style['margin-top'] = (i * BUTTON_HEIGHT) + "px";
 						//ADD ELIGIBILITY ATTRIBUTES
 						if('valid_for' in qd_settings.accounts[key]) {
-							console.log(key);
+							_dbg(key);
 							for(var type_id of qd_settings.accounts[key].valid_for) {
-								console.log(qd_settings.draggable_elements.index[type_id]);
+								_dbg(qd_settings.draggable_elements.index[type_id]);
 								el.setAttribute("data-" + qd_settings.draggable_elements.index[type_id], 1);
 							}
 						}
@@ -229,10 +239,10 @@ var QD_ext = (function () {
 						};
 						el.ondragenter = function(e) {
 							this.classList.add('over');
+							drag_event.dataTransfer.effectAllowed = "copy";
 						};
 						el.ondragover = function (e) {
 							e.preventDefault();
-							dragging.dataTransfer.effectAllowed = "copy";
 							return false;
 						};
 						el.ondragleave = function(e) {
