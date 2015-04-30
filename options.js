@@ -22,9 +22,9 @@ var QD_options = (function () {
 			gestures:{
 				title:'Mouse Gesture',
 				options:[
-					{id:'up-right', name:'active_gesture', value:true, title:'Drag Up then Right', description:'Drag 50px up and then 50px to the right. The only limitation is for elements at very top of a page.'},
+					{id:'up-right', name:'active_gesture', value:false, title:'Drag Up then Right', description:'Drag 50px up and then 50px to the right. The only limitation is for elements at very top of a page.'},
 					{id:'right', name:'active_gesture', title:'Drag Right', value:false, description:'Drag 50px to the right. Users who highlight while they read may find this is too easy to trigger unintentionally.'},
-					{id:'vertical-right', name:'active_gesture', title:'Drag Vertically then Right', value:false, description:'Drag 50px up OR down, and then 50px to the right.'}
+					{id:'vertical-right', name:'active_gesture', title:'Drag Vertically then Right', value:true, description:'Drag 50px up OR down, and then 50px to the right.'}
 				]
 			},
 			local:{
